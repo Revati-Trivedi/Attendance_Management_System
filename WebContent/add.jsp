@@ -110,12 +110,23 @@ padding:20px;
 }
 </style>
 </head>
+<script>
+function validate()
+{
+	var num = document.getElementById("lectures").value;
+	if(num == 0)
+		{
+		alert("Please select a Lecture");
+		return false;
+		}
+}
+</script>
 <body>
 
 
 
 <% if(rs != null){ %>
-<form>
+<form onsubmit="return validate()">
 <table style="margin-top:15%;margin-left:45%;">
 
 <tr>
@@ -143,12 +154,12 @@ padding:20px;
 <% int rst=0;if(rs2!=null){ %>
 
 <% while(rst!=1 && rs2.next()){ %>
-<div style="margin-top:2%;">
-<div><b>Semester :</b><% out.println(rs2.getString("semester")); %></div>
-<div><b>Division :</b><% out.println(rs2.getString("division")); %></div>
-<div><b>Subject :</b><% out.println(rs2.getString("subjectname")); %> </div>
-<div><b>Date :</b><% out.println(rs2.getString("date")); %> </div>
-</div>
+<p style="margin-top:2%;">
+<h3><b>Semester :</b><% out.println(rs2.getString("semester")); %></h3>
+<h3><b>Division :</b><% out.println(rs2.getString("division")); %></h3>
+<h3><b>Subject :</b><% out.println(rs2.getString("subjectname")); %> </h3>
+<h3><b>Date :</b><% out.println(rs2.getString("date")); %> </h3>
+</p>
 <% rst++;}
 rs2.beforeFirst();
 %>

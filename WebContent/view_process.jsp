@@ -3,12 +3,33 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/sql" prefix="sql"%>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<sql:setDataSource var="dataSource" driver="com.mysql.jdbc.Driver"
-url="jdbc:mysql://localhost:3307/db_attendance" user="root" password="" />
+<sql:setDataSource var="dataSource" driver="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+url="jdbc:sqlserver://localhost:1433;databaseName=attendance_system;integratedSecurity=true"
+ user="root" password="" />
 
 <!DOCTYPE html>
 <html>
     <head>
+    	<style>
+    	#attendance_table
+    	{
+			margin-top:3%;
+			width:50%;
+		}
+		#attendance_table tr td
+		{
+			padding:20px;
+		}
+		#attendance_table tr:first-child
+		{
+			background-color:gray;
+			color:white;
+		}
+		#attendance_table tr:nth-child(even)
+		{
+			background-color:lightgray;
+		}  	
+    	</style>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>View Attendance</title>
     </head>
@@ -19,7 +40,7 @@ url="jdbc:mysql://localhost:3307/db_attendance" user="root" password="" />
         int sem = Integer.parseInt(request.getParameter("sem"));
         String division = request.getParameter("division");
         String dt = request.getParameter("date");
-        int t_id = (int)session.getAttribute("teacherid");
+        int t_id = (Integer)session.getAttribute("teacherid");
         %>
         
         <c:set var="sub" value="<%=sub_name%>" scope="page"/>
@@ -38,10 +59,14 @@ url="jdbc:mysql://localhost:3307/db_attendance" user="root" password="" />
         <% out.print(sub_name);%>
         </h3>
         <c:catch var ="catchException">
-        <sql:query var="result" dataSource="jdbc/db_attendance">
-        SELECT Fkstudentid, name, Attendance FROM attendance, master_student WHERE Fklectureid IN (SELECT Lectureid FROM master_lecture
-        WHERE Fkteacherid=${tid} AND fkdivisionid=(SELECT Divisionid FROM master_division WHERE Division="${DIV}" AND Semester=${semester}) AND Fksubjectid IN (SELECT Subjectid FROM master_subject WHERE Subjectname="${sub}")
-        AND Date = (SELECT STR_TO_DATE('${date}','%Y-%m-%d')) ) AND enrollmentnumber = Fkstudentid
+        <sql:query var="result" dataSource="${dataSource}">
+        SELECT enrollmentnumber, name, Attendance FROM attendance join master_student 
+        on fkenrollmentnumber = enrollmentnumber WHERE Fklectureid IN
+         (SELECT Lectureid FROM master_lecture
+        WHERE Fkteacherid=${tid} AND fkdivisionid=(SELECT Divisionid FROM master_division WHERE 
+        Division='${DIV}' AND Semester=${semester}) AND Fksubjectid IN 
+        (SELECT Subjectid FROM master_subject WHERE Subjectname='${sub}')
+        AND Date = '${date}' AND enrollmentnumber = enrollmentnumber)
         </sql:query>
         </c:catch>
         
@@ -53,23 +78,23 @@ url="jdbc:mysql://localhost:3307/db_attendance" user="root" password="" />
              <p>Data Unavailable</p>
              </c:when>
              <c:otherwise>
-                <table width="70%" border="2" align="center">
+                <table  id="attendance_table" align="center" style="vertical-align:middle" cellspacing="0" cellpadding="0">
                      <tr>
-                          <th>Enrollment Number</th>
-                          <th>Name</th>
-                          <th>Attendance</th>
-                           <th>Edit</th>
+                          <td>Enrollment Number</td>
+                          <td>Name</td>
+                          <td>Attendance</td>
+                           <td>Edit</td>
                       </tr>
                  <c:forEach var="table" items="${result.rows}">
                      <tr>
-                           <td align="center"><c:out value="${table.Fkstudentid}"/></td>
+                           <td align="center"><c:out value="${table.enrollmentnumber}"/></td>
                             <td align="center"><c:out value="${table.name}"/></td>
                             <td align="center">
                                 <!--c:if test=${table.Attendance eq true} --><!--c:out value="Present"/--><!--/c:if-->
                                 <!--c:if test=${table.Attendance eq false} --><!--c:out value="Absent"/--><!--/c:if-->
                                 <c:out value="${table.Attendance}"/>
                             </td>
-                            <td align="center"><a href="edit.jsp?id=${table.Fkstudentid}&dt=${date}">Edit</a></td>  
+                            <td align="center"><a href="edit.jsp?id=${table.enrollmentnumber}&dt=${date}">Edit</a></td>  
                         </tr>
                  </c:forEach>
                 </table>
